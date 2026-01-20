@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPDC File Locator</title>
+
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Popup Logo Animation Styles */
+        .logo-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+            animation: overlayFadeIn 0.5s ease-in-out forwards;
+        }
+
+        .logo-popup-container {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-popup-image {
+            max-width: 300px;
+            max-height: 300px;
+            animation: logoZoomIn 0.8s ease-in-out forwards;
+        }
+
+        @keyframes overlayFadeIn {
+            from {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+            to {
+                opacity: 1;
+                backdrop-filter: blur(5px);
+            }
+        }
+
+        @keyframes logoZoomIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes popupFadeOut {
+            from {
+                opacity: 1;
+                backdrop-filter: blur(5px);
+            }
+            to {
+                opacity: 0;
+                backdrop-filter: blur(0px);
+            }
+        }
+
+        body.popup-active {
+            overflow: hidden;
+        }
+
+        /* Image Upload Preview Styles */
+        .file-image-thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .file-image-thumbnail:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .image-viewer-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-viewer-content img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Logo Popup Animation -->
+<div id="logoPopup" class="logo-popup-overlay" style="display: none;">
+    <div class="logo-popup-container">
+        <img class="logo-popup-image" src="https://raw.githubusercontent.com/MathEase07/FileLocator/main/MPDCC-removebg-preview.png" alt="MPDC Logo">
+    </div>
+</div>
+
+<header class="navbar">
+    <div class="navbar-container">
+        <div class="navbar-brand">
+            <img src="https://raw.githubusercontent.com/MathEase07/FileLocator/main/MPDCC.jpg" alt="Logo" style="height: 30px; width: auto; margin-right: 10px; object-fit: contain;">
+            
+            <span>MPDC File Locator</span>
+        </div>
+        <nav class="navbar-nav">
+            <a href="#hero" class="nav-link" data-section="hero">Home</a>
+            <a href="#features" class="nav-link" data-section="features">Features</a>
+            <a href="#instructions" class="nav-link" data-section="instructions">Instructions</a>
+            <a href="#developers" class="nav-link" data-section="developers">Developers</a>
+        </nav>
+        <div class="navbar-controls">
+            <button id="theme-toggle" class="theme-toggle" title="Toggle theme">
+                <i class="fas fa-sun"></i>
+            </button>
+            <button id="import-header-btn" class="btn btn-outline" onclick="importFiles()" title="Import files">
+                <i class="fas fa-upload"></i> Import
+            </button>
+            <button id="signin-btn" class="btn btn-primary">Sign in</button>
+            <button id="change-account-btn" class="btn btn-secondary" style="display:none;">Change Account</button>
+            <button id="signout-header-btn" class="btn btn-secondary" style="display:none;">Sign out</button>
+        </div>
+    </div>
+</header>
+
+
+<section id="hero" class="view-section hero-section active" style="background-image: url('https://raw.githubusercontent.com/MathEase07/FileLocator/main/pu.jpg'); background-size: cover; background-position: center; background-attachment: fixed;">
+    <div class="hero-background"></div>
+    <div class="hero-content">
+        <h1 class="hero-title">Unlimited File Tracking</h1>
+        <p class="hero-subtitle">Search, organize, and manage your files efficiently. Sign in to unlock all features.</p>
+        <div class="search-container">
+            <div class="search-wrapper">
+                <i class="fas fa-search"></i>
+                <input id="searchBar" class="search-box" placeholder="Search files..." />
+            </div>
+        </div>
+        <div id="results" class="results-container"></div>
+    </div>
+</section>
+
+<section id="features" class="view-section features-section">
+    <div class="container">
+        <h2 class="section-title">Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Quick Search</h3>
+                <p>Find your files in seconds with our powerful search engine.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3>Secure Storage</h3>
+                <p>Your files are protected with enterprise-grade security.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-sync"></i>
+                </div>
+                <h3>Import & Export</h3>
+                <p>Import or Export current data to share with others.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-share-alt"></i>
+                </div>
+                <h3>Easy Sharing</h3>
+                <p>Share files with your team in one button.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <h3>Dynamic Search</h3>
+                <p>Search any information you remember or want to find to see it.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>Mobile Ready</h3>
+                <p>Access your files anytime, anywhere.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div class="sidebar" style="display:none"></div>
+
+
+<div class="main-content" style="display:none">
+    <div class="header-top">
+        <h2>All Files</h2>
+        <input type="text" class="search-box" id="searchBar-main" placeholder="🔍 Search files...">
+    </div>
+    <div id="statusMessage"></div>
+    <div id="results-main"></div>
+</div>
+
+<section id="instructions" class="view-section instructions-section">
+    <div class="container">
+        <h2 class="section-title">How to Use</h2>
+        <div class="instructions-grid">
+            <div class="instruction-card">
+                <div class="step-number">1</div>
+                <h3>Search & Find</h3>
+                <p>Use the search feature to quickly locate your files.</p>
+            </div>
+            <div class="instruction-card">
+                <div class="step-number">2</div>
+                <h3>Sign In</h3>
+                <p>Sign-in using "user" for Username and "password" for Password to change account and add data. </p>
+            </div>
+            <div class="instruction-card">
+                <div class="step-number">3</div>
+               <h3>Add Files</h3>
+                <p>Enter file details including Date, Storage location, and Other informations.</p> 
+            </div>
+            <div class="instruction-card">
+                <div class="step-number">4</div>
+                <h3>Export/Import</h3>
+                <p>Backup your data or import files from other sources.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="dashboard" class="view-section dashboard-section">
+    <div class="container">
+        <div class="dashboard-card">
+            <h2>Add New File</h2>
+            <div id="addForm" class="form-section active">
+                <div id="addStatus"></div>
+
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="text" id="title" placeholder="Enter file date...">
+                </div>
+
+                <div class="form-group">
+                    <label>Storage Location</label>
+                    <input type="text" id="storage" placeholder="Enter Location...">
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Information</label>
+                    <textarea id="info" placeholder="Add details..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Image (Optional)</label>
+                    <input type="file" id="imageUpload" accept="image/*" placeholder="Choose an image...">
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="addFile()">
+                        <i class="fas fa-plus"></i> Add File
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearForm()">
+                        <i class="fas fa-redo"></i> Clear
+                    </button>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-outline" onclick="exportFiles()">
+                        <i class="fas fa-download"></i> Export Files
+                    </button>
+                    <button class="btn btn-outline" onclick="importFiles()">
+                        <i class="fas fa-upload"></i> Import Files
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="developers" class="view-section developers-section">
+    <div class="container">
+        <h2 class="section-title">Our Team</h2>
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-avatar">RM</div>
+                <h3>Renzo Miguel V. Masagnay</h3>
+                <p class="member-role">Lead Developer</p>
+            </div>
+            <div class="team-member">
+                <div class="member-avatar">BC</div>
+                <h3>Bianca Cerrudo</h3>
+                <p class="member-role">Lead Researcher</p>
+            </div>
+            <div class="team-member">
+                <div class="member-avatar">AA</div>
+                <h3>Ayessa Ayubo</h3>
+                <p class="member-role">Team Member</p>
+            </div>
+            <div class="team-member">
+                <div class="member-avatar">KV</div>
+                <h3>Kinamiel Villamero</h3>
+                <p class="member-role">Team Member</p>
+            </div>
+            <div class="team-member">
+                <div class="member-avatar">WP</div>
+                <h3>Wangyi Peren</h3>
+                <p class="member-role">Team Member</p>
+            </div>
+            <div class="team-member">
+                <div class="member-avatar">AR</div>
+                <h3>Aldhen Remojo</h3>
+                <p class="member-role">Team Member</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About</h4>
+                <p>File Storage Tracker helps you organize and find files efficiently.</p>
+            </div>
+            <div class="footer-section" id="footer-quick-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#hero" class="footer-link" data-section="hero">Home</a></li>
+                    <li><a href="#features" class="footer-link" data-section="features">Features</a></li>
+                    <li><a href="#instructions" class="footer-link" data-section="instructions">Instructions</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact</h4>
+                <p><i class="fas fa-phone"></i> 09217728538</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 File Storage Tracker. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+
+
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2>Sign In</h2>
+        <div class="modal-form">
+            <div class="form-group">
+                <input id="login-user" placeholder="Username" />
+            </div>
+            <div class="form-group">
+                <input id="login-pass" type="password" placeholder="Password" />
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-login" class="btn btn-secondary">Cancel</button>
+                <button id="submit-login" class="btn btn-primary">Sign In</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="change-account-modal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeChangeModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2>Change Account</h2>
+        <div class="modal-form">
+            <div class="form-group">
+                <input id="change-user" placeholder="New Username" />
+            </div>
+            <div class="form-group">
+                <input id="change-pass" type="password" placeholder="New Password" />
+            </div>
+            <div class="form-group">
+                <input id="change-pass-confirm" type="password" placeholder="Confirm New Password" />
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-change" class="btn btn-secondary">Cancel</button>
+                <button id="submit-change" class="btn btn-primary">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="password-verify-modal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeVerifyModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2 id="verify-modal-title">Verify Password</h2>
+        <div class="modal-form">
+            <div class="form-group">
+                <input id="verify-password" type="password" placeholder="Enter your password" />
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-verify" class="btn btn-secondary" onclick="cancelVerify()">Cancel</button>
+                <button id="submit-verify" class="btn btn-primary" onclick="proceedWithAction(document.getElementById('verify-password').value)">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="edit-file-modal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeEditModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h2>Edit File Details</h2>
+        <div class="modal-form">
+            <div class="form-group">
+                <label>Title</label>
+                <input id="edit-title" type="text" placeholder="File title" />
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input id="edit-storage" type="text" placeholder="Storage location" />
+            </div>
+            <div class="form-group">
+                <label>Info (Optional)</label>
+                <input id="edit-info" type="text" placeholder="Additional information" />
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-edit" class="btn btn-secondary">Cancel</button>
+                <button id="submit-edit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal for zoomed image viewing -->
+<div id="image-viewer-modal" class="modal">
+    <div class="image-viewer-content">
+        <button class="modal-close" onclick="closeImageViewer()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="viewer-image" src="" alt="Image viewer">
+    </div>
+</div>
+
+    <!-- Logo Popup Animation Script -->
+    <script>
+        // Logo Popup Animation on Page Load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show popup on page load
+            showLogoPopup();
+        });
+
+        /**
+         * Display the logo popup with animation
+         */
+        function showLogoPopup() {
+            const popup = document.getElementById('logoPopup');
+            const body = document.body;
+
+            // Show popup and disable scrolling
+            popup.style.display = 'flex';
+            body.classList.add('popup-active');
+
+            // Auto-hide popup after 2.5 seconds
+            setTimeout(() => {
+                hideLogoPopup();
+            }, 2500);
+        }
+
+        /**
+         * Hide the logo popup with fade-out animation
+         */
+        function hideLogoPopup() {
+            const popup = document.getElementById('logoPopup');
+            const body = document.body;
+
+            // Create fade-out animation
+            popup.style.animation = 'popupFadeOut 0.5s ease-in-out forwards';
+
+            // Remove popup after animation completes
+            setTimeout(() => {
+                popup.style.display = 'none';
+                popup.style.animation = ''; // Reset animation
+                body.classList.remove('popup-active'); // Re-enable scrolling
+            }, 500);
+        }
+
+        /**
+         * Close the image viewer modal
+         */
+        function closeImageViewer() {
+            const modal = document.getElementById('image-viewer-modal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        /**
+         * Open the image viewer modal with the clicked image
+         */
+        function openImageViewer(imageSrc) {
+            const modal = document.getElementById('image-viewer-modal');
+            const viewerImage = document.getElementById('viewer-image');
+            if (modal && viewerImage) {
+                viewerImage.src = imageSrc;
+                modal.style.display = 'flex';
+            }
+        }
+
+        /**
+         * Handle image file upload
+         */
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Store the image data in the window object for later use
+                    window.uploadedImageData = e.target.result;
+                    // You can also display a preview
+                    console.log('Image uploaded and ready for storing with file data');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Add event listener for image upload input
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageUploadInput = document.getElementById('imageUpload');
+            if (imageUploadInput) {
+                imageUploadInput.addEventListener('change', handleImageUpload);
+            }
+        });
+    </script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
+
